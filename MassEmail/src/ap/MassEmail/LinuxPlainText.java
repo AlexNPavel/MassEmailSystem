@@ -30,10 +30,20 @@ public class LinuxPlainText {
 	static String host;
 	static BufferedReader emails;
 	static BufferedReader messageSC;
+	static String encoding;
+	static String os;
 	
 	public static void main(String[] args) throws IOException {
-		emails = new BufferedReader(new InputStreamReader(new FileInputStream("emails.txt"), "utf-8"));
-		messageSC = new BufferedReader(new InputStreamReader(new FileInputStream("message.txt"), "utf-8"));
+		if(System.getProperty("os.name").toLowerCase().equals("linux")) {
+			emails = new BufferedReader(new InputStreamReader(new FileInputStream("emails.txt"), "utf-8"));
+			messageSC = new BufferedReader(new InputStreamReader(new FileInputStream("message.txt"), "utf-8"));
+			os = "linux";
+		}
+		else if(System.getProperty("os.name").toLowerCase().equals("windows")) {
+			emails = new BufferedReader(new InputStreamReader(new FileInputStream("emails.txt"), "Cp1252"));
+			messageSC = new BufferedReader(new InputStreamReader(new FileInputStream("message.txt"), "Cp1252"));
+			os = "windows";
+		}
 		cnsl = null;
 		try{
 	         cnsl = System.console();
@@ -143,26 +153,45 @@ public class LinuxPlainText {
 		while(line != null) {
 			String[] split = line.split("-");
 			messageC = new String();
-			messageSC = new BufferedReader(new InputStreamReader(new FileInputStream("message.txt"), "utf-8"));
-			subject = messageSC.readLine();
-			String nextLineMess = messageSC.readLine();
-			while(nextLineMess != null) {
-				messageC = messageC + "\n" + nextLineMess;
-				nextLineMess = messageSC.readLine();
-			}
-			
-			splitMessage = messageC.split("recipient_name");
-			messageC = new String();
-			
-			for (int i = 0; i < splitMessage.length; i++) {
-				if (splitMessage.length != (i + 1)) {
-					messageC = messageC + splitMessage[i] + split[0];
+			if (os.equals("linux")) {
+				messageSC = new BufferedReader(new InputStreamReader(new FileInputStream("message.txt"), "utf-8"));
+				subject = messageSC.readLine();
+				String nextLineMess = messageSC.readLine();
+				while (nextLineMess != null) {
+					messageC = messageC + "\n" + nextLineMess;
+					nextLineMess = messageSC.readLine();
 				}
-				else{
-					messageC = messageC + splitMessage[i];
+				splitMessage = messageC.split("recipient_name");
+				messageC = new String();
+				for (int i = 0; i < splitMessage.length; i++) {
+					if (splitMessage.length != (i + 1)) {
+						messageC = messageC + splitMessage[i] + split[0];
+					} else {
+						messageC = messageC + splitMessage[i];
+					}
 				}
 			}
-			
+			else if (os.equals("linux")) {
+				messageSC = new BufferedReader(new InputStreamReader(
+						new FileInputStream("message.txt"), "Cp1252"));
+				subject = messageSC.readLine();
+				String nextLineMess = messageSC.readLine();
+				while (nextLineMess != null) {
+					nextLineMess = messageSC.readLine();
+					messageC = messageC + "\n" + nextLineMess;
+					nextLineMess = messageSC.readLine();
+				}
+				splitMessage = messageC.split("recipient_name");
+				messageC = new String();
+				for (int i = 0; i < splitMessage.length; i++) {
+					if (splitMessage.length != (i + 1)) {
+						messageC = messageC + splitMessage[i] + split[0];
+					} else {
+						messageC = messageC + splitMessage[i];
+					}
+				}
+			}
+			else {System.out.println("Coding Error! Sorry :(");}
 			try {
 				System.out.println("Sending message to "+split[0]);
 				Message message = new MimeMessage(session);
