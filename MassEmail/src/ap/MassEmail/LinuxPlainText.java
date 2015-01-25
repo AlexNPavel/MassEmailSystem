@@ -1,10 +1,11 @@
 package ap.MassEmail;
 
-import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.BufferedReader;
+import java.io.FileInputStream;
 import java.io.Console;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.Properties;
-import java.util.Scanner;
 
 import javax.mail.Message;
 import javax.mail.MessagingException;
@@ -18,30 +19,31 @@ import javax.mail.internet.MimeMessage;
 public class LinuxPlainText {
 
 	static long lines;
-	static Scanner emails;
-	static Scanner messageSC;
+
 	static String messageC;
 	static String subject;
 	static String[] splitMessage;
-	static Scanner infoReader;
 	static Console cnsl;
 	static String username;
 	static String password;
 	static String[] splitUser;
 	static String host;
+	static BufferedReader emails;
+	static BufferedReader messageSC;
 	
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
+		emails = new BufferedReader(new InputStreamReader(new FileInputStream("emails.txt"), "utf-8"));
+		messageSC = new BufferedReader(new InputStreamReader(new FileInputStream("message.txt"), "utf-8"));
 		cnsl = null;
 		try{
 	         cnsl = System.console();
-
 	         if (cnsl != null) {
-	        	 System.out.print("Sender Email: ");
-		         username = cnsl.readLine();
-		         System.out.print("Password: ");
-		         char[] pwd = cnsl.readPassword();
-		         password = new String(pwd);
-		         System.out.println("");
+	        	System.out.print("Sender Email: ");
+	            username = cnsl.readLine();
+	            System.out.print("Password: ");
+	            char[] pwd = cnsl.readPassword();
+	            password = new String(pwd);
+	            System.out.println();
 	         }      
 	      }catch(Exception ex){
 	         ex.printStackTrace();      
@@ -126,12 +128,7 @@ public class LinuxPlainText {
 				return new PasswordAuthentication(username, password);
 			}
 		  });
-		
-		try {
-			emails = new Scanner(new File("emails.txt"));
-		} catch (FileNotFoundException e1) {
-			e1.printStackTrace();
-		}
+	
 		Transport transport = null;
 		try {
 			transport = session.getTransport("smtp");
@@ -141,26 +138,23 @@ public class LinuxPlainText {
 		} catch (MessagingException e) {
 			e.printStackTrace();
 		}
-		while(emails.hasNextLine()) {
-			String line = emails.nextLine();
+		
+		String line = emails.readLine();
+		while(line != null) {
 			String[] split = line.split("-");
-			
 			messageC = new String();
-			try {
-				messageSC = new Scanner(new File("message.txt"));
-			} catch (FileNotFoundException e1) {
-				e1.printStackTrace();
+			messageSC = new BufferedReader(new InputStreamReader(new FileInputStream("message.txt"), "utf-8"));
+			subject = messageSC.readLine();
+			String nextLineMess = messageSC.readLine();
+			while(nextLineMess != null) {
+				messageC = messageC + "\n" + nextLineMess;
+				nextLineMess = messageSC.readLine();
 			}
 			
-			subject = messageSC.nextLine();
-			
-			while(messageSC.hasNextLine()) {
-				messageC = messageC + "\n" + messageSC.nextLine();
-			}
 			splitMessage = messageC.split("recipient_name");
 			messageC = new String();
 			
-			for (int i = 1; i < splitMessage.length; i++) {
+			for (int i = 0; i < splitMessage.length; i++) {
 				if (splitMessage.length != (i + 1)) {
 					messageC = messageC + splitMessage[i] + split[0];
 				}
@@ -178,12 +172,13 @@ public class LinuxPlainText {
 				System.out.println("Set email as " + split[1]);
 				message.setSubject(subject);
 				message.setContent(messageC, "text/plain");
+	 
 			    transport.sendMessage(message, message.getAllRecipients());
 			} catch (MessagingException e) {
 				throw new RuntimeException(e);
 			}
-			System.out.println("Done");
-			System.out.println();
+			System.out.println("Done\n");
+			line = emails.readLine();
 		}
 		try {
 			transport.close();

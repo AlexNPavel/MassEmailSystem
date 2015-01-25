@@ -38,12 +38,12 @@ public class WindowsANSI {
 		try{
 	         cnsl = System.console();
 	         if (cnsl != null) {
-	        	System.out.println("Sender Email: ");
+	        	System.out.print("Sender Email: ");
 	            username = cnsl.readLine();
-	            System.out.println("Password: ");
+	            System.out.print("Password: ");
 	            char[] pwd = cnsl.readPassword();
 	            password = new String(pwd);
-	            System.out.println("");
+	            System.out.print("");
 	         }      
 	      }catch(Exception ex){
 	         ex.printStackTrace();      
