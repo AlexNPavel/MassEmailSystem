@@ -34,7 +34,7 @@ public class MassEmail {
 	static String os;
 	
 	public static void main(String[] args) throws IOException {
-		if(System.getProperty("os.name").toLowerCase().equals("linux")) {
+		if(System.getProperty("os.name").toLowerCase().startsWith("linux")) {
 			emails = new BufferedReader(new InputStreamReader(new FileInputStream("emails.txt"), "utf-8"));
 			messageSC = new BufferedReader(new InputStreamReader(new FileInputStream("message.txt"), "utf-8"));
 			os = "linux";
@@ -44,7 +44,7 @@ public class MassEmail {
 			messageSC = new BufferedReader(new InputStreamReader(new FileInputStream("message.txt"), "Cp1252"));
 			os = "windows";
 		}
-		else {System.out.println("Your OS is not supported at this time.");}
+		else {System.out.println("Your OS is not supported at this time."); System.exit(0);}
 		cnsl = null;
 		try{
 	         cnsl = System.console();
